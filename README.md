@@ -27,7 +27,12 @@ gazoon は預かりません。Worker も R2 バケットも D1 データベー�
 アカウントの中に作られます。認証情報は、あなたが自分で生成したトークン 1 つだけです。破られる
 べき中央インスタンスも、乗っ取られるべき運営アカウントも存在しません。
 
-費用は Cloudflare に払う分だけで、個人利用ならたいていゼロです。
+費用は Cloudflare の料金体系がそのまま適用されます。Workers・R2・D1 にはいずれも無料枠が
+ありますが、実際にいくらかかるかは使い方次第ですし、料金体系そのものも変わります。金額を約束
+することはできないので、[Workers](https://developers.cloudflare.com/workers/platform/pricing/) /
+[R2](https://developers.cloudflare.com/r2/pricing/) /
+[D1](https://developers.cloudflare.com/d1/platform/pricing/) の料金ページで最新の条件を確認して
+ください。なお R2 の利用にはお支払い方法の登録が必要です。
 
 ## デプロイする
 

@@ -31,8 +31,14 @@ in your own Cloudflare account, and the only credential is a token you generate
 yourself. There is no central instance to breach and no operator account to
 compromise.
 
-It costs whatever Cloudflare charges you, which for personal use is usually
-nothing.
+It costs whatever Cloudflare charges you. Workers, R2 and D1 all have free
+allowances, but what you actually pay depends on how you use them, and the
+pricing itself changes — so this README will not promise you a number. Check the
+current terms for
+[Workers](https://developers.cloudflare.com/workers/platform/pricing/),
+[R2](https://developers.cloudflare.com/r2/pricing/) and
+[D1](https://developers.cloudflare.com/d1/platform/pricing/). Note that R2 needs
+a payment method on the account before it can be used at all.
 
 ## Deploy it
 
