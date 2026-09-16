@@ -1,0 +1,3 @@
+# Bearer token used to authenticate uploads, listing and deletion.
+# Generate one with: openssl rand -hex 32
+UPLOAD_TOKEN=

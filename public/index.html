@@ -1,0 +1,450 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="robots" content="noindex" />
+		<title>gazoon</title>
+		<style>
+			:root {
+				color-scheme: light dark;
+				--bg: #fbfbfa;
+				--panel: #ffffff;
+				--border: #e3e3e0;
+				--text: #1c1c1a;
+				--muted: #77776f;
+				--accent: #d4622a;
+				--danger: #c0392b;
+			}
+			@media (prefers-color-scheme: dark) {
+				:root {
+					--bg: #17171a;
+					--panel: #1f1f23;
+					--border: #33333a;
+					--text: #ececea;
+					--muted: #8d8d97;
+					--accent: #e8793f;
+					--danger: #e05c4e;
+				}
+			}
+			* {
+				box-sizing: border-box;
+			}
+			body {
+				margin: 0;
+				padding: 24px 16px 64px;
+				background: var(--bg);
+				color: var(--text);
+				font: 14px/1.6 ui-sans-serif, system-ui, -apple-system, "Helvetica Neue",
+					"Hiragino Sans", "Noto Sans JP", sans-serif;
+			}
+			main {
+				max-width: 960px;
+				margin: 0 auto;
+			}
+			header {
+				display: flex;
+				align-items: baseline;
+				justify-content: space-between;
+				gap: 12px;
+				flex-wrap: wrap;
+				margin-bottom: 24px;
+			}
+			h1 {
+				margin: 0;
+				font-size: 20px;
+				letter-spacing: -0.01em;
+			}
+			.tagline {
+				color: var(--muted);
+				font-size: 13px;
+			}
+			button {
+				font: inherit;
+				color: inherit;
+				background: var(--panel);
+				border: 1px solid var(--border);
+				border-radius: 6px;
+				padding: 6px 12px;
+				cursor: pointer;
+			}
+			button:hover {
+				border-color: var(--muted);
+			}
+			button.primary {
+				background: var(--accent);
+				border-color: var(--accent);
+				color: #fff;
+			}
+			button.danger {
+				color: var(--danger);
+			}
+			input[type="password"],
+			input[type="text"] {
+				font: inherit;
+				color: inherit;
+				background: var(--panel);
+				border: 1px solid var(--border);
+				border-radius: 6px;
+				padding: 7px 10px;
+				width: 100%;
+			}
+			#dropzone {
+				border: 2px dashed var(--border);
+				border-radius: 10px;
+				padding: 40px 20px;
+				text-align: center;
+				color: var(--muted);
+				background: var(--panel);
+				transition: border-color 0.15s, color 0.15s;
+			}
+			#dropzone.dragover {
+				border-color: var(--accent);
+				color: var(--accent);
+			}
+			#dropzone strong {
+				color: var(--text);
+				display: block;
+				font-size: 15px;
+				margin-bottom: 6px;
+			}
+			#grid {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+				gap: 14px;
+				margin-top: 24px;
+			}
+			.card {
+				background: var(--panel);
+				border: 1px solid var(--border);
+				border-radius: 10px;
+				overflow: hidden;
+				display: flex;
+				flex-direction: column;
+			}
+			.card img {
+				width: 100%;
+				height: 140px;
+				object-fit: contain;
+				background: repeating-conic-gradient(
+						var(--border) 0% 25%,
+						transparent 0% 50%
+					)
+					50% / 16px 16px;
+			}
+			.card .meta {
+				padding: 8px 10px;
+				font-size: 12px;
+				color: var(--muted);
+				display: flex;
+				justify-content: space-between;
+				gap: 8px;
+			}
+			.card .actions {
+				display: flex;
+				gap: 6px;
+				padding: 0 10px 10px;
+			}
+			.card .actions button {
+				flex: 1;
+				padding: 5px 8px;
+				font-size: 12px;
+			}
+			#status {
+				margin-top: 14px;
+				min-height: 20px;
+				color: var(--muted);
+				font-size: 13px;
+			}
+			#status.error {
+				color: var(--danger);
+			}
+			.hidden {
+				display: none !important;
+			}
+			#gate {
+				max-width: 420px;
+				margin: 12vh auto 0;
+				background: var(--panel);
+				border: 1px solid var(--border);
+				border-radius: 10px;
+				padding: 24px;
+			}
+			#gate p {
+				color: var(--muted);
+				font-size: 13px;
+			}
+			#gate form {
+				display: flex;
+				gap: 8px;
+				margin-top: 16px;
+			}
+			#load-more {
+				display: block;
+				margin: 24px auto 0;
+			}
+			code {
+				font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+				font-size: 12px;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="gate" class="hidden">
+			<h1>gazoon</h1>
+			<p>
+				Paste the <code>UPLOAD_TOKEN</code> you set when deploying this instance.
+				It is kept in this browser only.
+			</p>
+			<form id="gate-form">
+				<input
+					type="password"
+					id="token-input"
+					autocomplete="off"
+					placeholder="UPLOAD_TOKEN"
+					required
+				/>
+				<button type="submit" class="primary">Unlock</button>
+			</form>
+		</div>
+
+		<main id="app" class="hidden">
+			<header>
+				<div>
+					<h1>gazoon</h1>
+					<div class="tagline">Screenshot. Upload. Copy URL. That's it.</div>
+				</div>
+				<button id="sign-out">Forget token</button>
+			</header>
+
+			<div id="dropzone">
+				<strong>Drop, paste, or click to upload</strong>
+				PNG, JPEG, GIF, WebP, AVIF
+				<input type="file" id="file-input" accept="image/*" multiple class="hidden" />
+			</div>
+
+			<div id="status"></div>
+			<div id="grid"></div>
+			<button id="load-more" class="hidden">Load more</button>
+		</main>
+
+		<script type="module">
+			const TOKEN_KEY = "gazoon.token";
+			const gate = document.getElementById("gate");
+			const app = document.getElementById("app");
+			const grid = document.getElementById("grid");
+			const status = document.getElementById("status");
+			const dropzone = document.getElementById("dropzone");
+			const fileInput = document.getElementById("file-input");
+			const loadMore = document.getElementById("load-more");
+
+			let token = localStorage.getItem(TOKEN_KEY) ?? "";
+			let nextCursor = null;
+
+			function say(message, isError = false) {
+				status.textContent = message;
+				status.classList.toggle("error", isError);
+			}
+
+			async function api(path, init = {}) {
+				const response = await fetch(path, {
+					...init,
+					headers: { ...(init.headers ?? {}), authorization: `Bearer ${token}` },
+				});
+				if (response.status === 401) {
+					signOut();
+					throw new Error("Token rejected.");
+				}
+				if (!response.ok) {
+					const body = await response.json().catch(() => ({}));
+					throw new Error(body.error ?? `Request failed (${response.status}).`);
+				}
+				return response.status === 204 ? null : response.json();
+			}
+
+			function formatSize(bytes) {
+				if (bytes < 1024) return `${bytes} B`;
+				if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+				return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+			}
+
+			function card(item) {
+				const node = document.createElement("div");
+				node.className = "card";
+				node.dataset.id = item.id;
+
+				const link = document.createElement("a");
+				link.href = item.url;
+				link.target = "_blank";
+				link.rel = "noreferrer";
+				const image = document.createElement("img");
+				image.src = item.url;
+				image.alt = "";
+				image.loading = "lazy";
+				link.append(image);
+
+				const meta = document.createElement("div");
+				meta.className = "meta";
+				const when = document.createElement("span");
+				when.textContent = new Date(item.created_at).toLocaleString();
+				const size = document.createElement("span");
+				size.textContent = formatSize(item.size);
+				meta.append(when, size);
+
+				const actions = document.createElement("div");
+				actions.className = "actions";
+
+				const copy = document.createElement("button");
+				copy.textContent = "Copy URL";
+				copy.addEventListener("click", async () => {
+					await navigator.clipboard.writeText(item.url);
+					copy.textContent = "Copied";
+					setTimeout(() => (copy.textContent = "Copy URL"), 1200);
+				});
+
+				const remove = document.createElement("button");
+				remove.className = "danger";
+				remove.textContent = "Delete";
+				let armed = false;
+				let disarm;
+				remove.addEventListener("click", async () => {
+					if (!armed) {
+						armed = true;
+						remove.textContent = "Sure?";
+						disarm = setTimeout(() => {
+							armed = false;
+							remove.textContent = "Delete";
+						}, 3000);
+						return;
+					}
+					clearTimeout(disarm);
+					try {
+						await api(`/api/images/${item.id}`, { method: "DELETE" });
+						node.remove();
+						say("Deleted.");
+					} catch (error) {
+						say(error.message, true);
+					}
+				});
+
+				actions.append(copy, remove);
+				node.append(link, meta, actions);
+				return node;
+			}
+
+			async function loadPage(reset = false) {
+				if (reset) {
+					grid.replaceChildren();
+					nextCursor = null;
+				}
+				const query = new URLSearchParams();
+				if (nextCursor) {
+					query.set("before_created_at", nextCursor.before_created_at);
+					query.set("before_id", nextCursor.before_id);
+				}
+				const page = await api(`/api/images?${query}`);
+				for (const item of page.items) {
+					grid.append(card(item));
+				}
+				nextCursor = page.next;
+				loadMore.classList.toggle("hidden", !nextCursor);
+				if (!grid.childElementCount) {
+					say("No images yet.");
+				}
+			}
+
+			async function upload(files) {
+				// An empty MIME type is common on drags from other apps; the server
+				// sniffs the bytes anyway, so let those through.
+				const images = [...files].filter(
+					(file) => !file.type || file.type.startsWith("image/"),
+				);
+				if (!images.length) {
+					say("No image in there.", true);
+					return;
+				}
+				let lastUrl = null;
+				for (const [index, file] of images.entries()) {
+					say(`Uploading ${index + 1}/${images.length}…`);
+					const form = new FormData();
+					form.append("file", file);
+					try {
+						const item = await api("/api/upload", { method: "POST", body: form });
+						grid.prepend(card(item));
+						lastUrl = item.url;
+					} catch (error) {
+						say(error.message, true);
+						return;
+					}
+				}
+				if (lastUrl) {
+					try {
+						await navigator.clipboard.writeText(lastUrl);
+						say(`Uploaded. URL copied: ${lastUrl}`);
+					} catch {
+						say(`Uploaded: ${lastUrl}`);
+					}
+				}
+			}
+
+			function signOut() {
+				localStorage.removeItem(TOKEN_KEY);
+				token = "";
+				app.classList.add("hidden");
+				gate.classList.remove("hidden");
+			}
+
+			async function start() {
+				gate.classList.add("hidden");
+				app.classList.remove("hidden");
+				say("");
+				try {
+					await loadPage(true);
+				} catch (error) {
+					say(error.message, true);
+				}
+			}
+
+			document.getElementById("gate-form").addEventListener("submit", async (event) => {
+				event.preventDefault();
+				token = document.getElementById("token-input").value.trim();
+				localStorage.setItem(TOKEN_KEY, token);
+				await start();
+			});
+
+			document.getElementById("sign-out").addEventListener("click", signOut);
+			loadMore.addEventListener("click", () => loadPage().catch((e) => say(e.message, true)));
+
+			dropzone.addEventListener("click", () => fileInput.click());
+			fileInput.addEventListener("change", () => {
+				upload(fileInput.files);
+				fileInput.value = "";
+			});
+			dropzone.addEventListener("dragover", (event) => {
+				event.preventDefault();
+				dropzone.classList.add("dragover");
+			});
+			dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
+			dropzone.addEventListener("drop", (event) => {
+				event.preventDefault();
+				dropzone.classList.remove("dragover");
+				upload(event.dataTransfer.files);
+			});
+			window.addEventListener("paste", (event) => {
+				const files = [...event.clipboardData.items]
+					.filter((item) => item.kind === "file")
+					.map((item) => item.getAsFile())
+					.filter(Boolean);
+				if (files.length) {
+					upload(files);
+				}
+			});
+
+			if (token) {
+				start();
+			} else {
+				gate.classList.remove("hidden");
+			}
+		</script>
+	</body>
+</html>

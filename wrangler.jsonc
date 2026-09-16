@@ -1,0 +1,30 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "gazoon",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-09-16",
+	"assets": {
+		"directory": "./public"
+	},
+	"observability": {
+		"enabled": true
+	},
+	"vars": {
+		// Maximum accepted upload size, in bytes. Default: 20MiB.
+		"MAX_UPLOAD_BYTES": "20971520"
+	},
+	"r2_buckets": [
+		{
+			"binding": "BUCKET",
+			"bucket_name": "gazoon-images"
+		}
+	],
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "gazoon",
+			// Placeholder. Rewritten with your own database ID at deploy time.
+			"database_id": "35f3db69-30b1-4f61-87d1-769017d6528f"
+		}
+	]
+}
