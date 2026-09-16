@@ -169,12 +169,14 @@ curl -X POST http://localhost:8787/api/upload \
   --data-binary @screenshot.png
 ```
 
-## Supporting this
-
-gazoon is free and always self-hosted, so there is nothing to sell you. If it
-saves you from paying someone else to hold your screenshots,
-[GitHub Sponsors](https://github.com/sponsors/Nkzn) is the way to say thanks.
-
 ## License
 
 MIT
+
+## Buy me a coffee
+
+gazoon is free and always self-hosted, so there is nothing to sell you. If it
+saves you from paying someone else to hold your screenshots, a coffee is a nice
+way to say thanks.
+
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy_Me_a_Coffee-nkzn-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/nkzn)
