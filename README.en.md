@@ -22,14 +22,15 @@ bucket it writes to.
 
 ## Why run your own
 
-Every hosted screenshot service asks you to trust an operator with a pile of
-images you stopped thinking about years ago. Sooner or later that trust gets
-tested.
+Hosted screenshot services are good at what they do, and for most purposes they
+are the more comfortable choice. Whichever you pick, though, your images pile up
+in an account that is not yours. gazoon is for the other preference: keeping your
+own data under your own control.
 
-gazoon does not ask. The Worker, the R2 bucket and the D1 database are created
-in your own Cloudflare account, and the only credential is a token you generate
-yourself. There is no central instance to breach and no operator account to
-compromise.
+The Worker, the R2 bucket and the D1 database are created in your own Cloudflare
+account, and the only credential is a token you generate yourself. You decide how
+it runs, what you keep and when things get deleted — and you take on the
+responsibility that comes with that.
 
 It costs whatever Cloudflare charges you. Workers, R2 and D1 all have free
 allowances, but what you actually pay depends on how you use them, and the
