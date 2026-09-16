@@ -2,165 +2,156 @@
 
 Images on Your R2.
 
-**Screenshot. Upload. Copy URL. That's it.** — but the images live in *your*
-Cloudflare account, not somebody else's. There is no gazoon service and no
-gazoon operator: you deploy your own instance, and nobody but you can read the
-bucket it writes to.
+[English version here](README.en.md)
+
+**スクショを撮る。アップロードする。URL をコピーする。それだけ。** — ただし画像が置かれるのは
+**あなた自身の** Cloudflare アカウントです。gazoon というサービスも、その運営者も存在しません。
+自分のインスタンスをデプロイして使うので、そのバケットを読めるのはあなただけです。
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/Nkzn/gazoon)
 
-![The gazoon web UI just after an upload, with the image URL already on the clipboard](docs/imgs/app-3-uploaded.png)
+![アップロード直後の gazoon の画面。画像の URL がすでにクリップボードに入っている](docs/imgs/app-3-uploaded.png)
 
-## What you get
+## できること
 
-- Drop, paste, or pick an image in the browser → it uploads and the URL lands on
-  your clipboard.
-- A list of everything you have uploaded, with one-click copy and delete.
-- Direct image URLs (`/i/<id>.jpg`) you can paste anywhere.
+- ブラウザに画像をドロップ / ペースト / 選択すると、アップロードされて URL がクリップボードに入ります。
+- アップロードした画像の一覧。ワンクリックで URL のコピーと削除ができます。
+- どこにでも貼れる直リンク URL（`/i/<id>.jpg`）。
 
-## Why run your own
+## なぜ自分で建てるのか
 
-Every hosted screenshot service asks you to trust an operator with a pile of
-images you stopped thinking about years ago. Sooner or later that trust gets
-tested.
+ホスト型のスクリーンショット共有サービスは、もう何年も思い出していない画像の山を、運営者に
+預けたままにすることを求めてきます。その信頼は、いつか必ず試されます。
 
-gazoon does not ask. The Worker, the R2 bucket and the D1 database are created
-in your own Cloudflare account, and the only credential is a token you generate
-yourself. There is no central instance to breach and no operator account to
-compromise.
+gazoon は預かりません。Worker も R2 バケットも D1 データベースも、あなた自身の Cloudflare
+アカウントの中に作られます。認証情報は、あなたが自分で生成したトークン 1 つだけです。破られる
+べき中央インスタンスも、乗っ取られるべき運営アカウントも存在しません。
 
-It costs whatever Cloudflare charges you, which for personal use is usually
-nothing.
+費用は Cloudflare に払う分だけで、個人利用ならたいていゼロです。
 
-## Deploy it
+## デプロイする
 
-Press the button above. Cloudflare copies this repository into your own GitHub
-or GitLab account, provisions the resources, and deploys the Worker. The whole
-thing takes about a minute.
+上のボタンを押してください。Cloudflare がこのリポジトリをあなたの GitHub / GitLab アカウントに
+複製し、必要なリソースを作成して Worker をデプロイします。全体で 1 分ほどです。
 
-If your Cloudflare account has never used R2, enable it in the dashboard first
-so the bucket can be created.
+Cloudflare アカウントで R2 を一度も使ったことがない場合は、バケットを作れるように先に
+ダッシュボードで R2 を有効化しておいてください。
 
-### 1. Name the project
+### 1. プロジェクト名を決める
 
-Pick a Git account and a project name. The D1 database that holds image metadata
-is created for you — leave it on **Create new**.
+Git アカウントとプロジェクト名を選びます。画像のメタデータを保存する D1 データベースは自動で
+作られるので、**Create new** のままにしておいてください。
 
-![The setup screen, with a Git account selected and a new D1 database named gazoon](docs/imgs/setup-1-project.png)
+![Git アカウントを選択し、gazoon という名前の D1 データベースを新規作成するセットアップ画面](docs/imgs/setup-1-project.png)
 
-### 2. Name the bucket
+### 2. バケット名を決める
 
-Same again for the R2 bucket that will hold the image files themselves.
+画像ファイルそのものを保存する R2 バケットも同様です。
 
-![The R2 bucket section of the setup screen, set to create a new bucket named gazoon-images](docs/imgs/setup-2-bucket.png)
+![gazoon-images という名前のバケットを新規作成するよう設定されたセットアップ画面の R2 セクション](docs/imgs/setup-2-bucket.png)
 
-### 3. Set the upload token
+### 3. アップロードトークンを設定する
 
-Generate a token and paste it into `UPLOAD_TOKEN`:
+トークンを生成して `UPLOAD_TOKEN` に貼り付けます。
 
 ```sh
 openssl rand -hex 32
 ```
 
-This is the only credential your instance has. Anyone holding it can upload to,
-list and delete from your instance, so treat it like a password.
+これがインスタンスの唯一の認証情報です。これを持っている人は誰でもアップロード・一覧取得・削除が
+できてしまうので、パスワードと同じように扱ってください。
 
-Leave **Protect with Cloudflare Access** off. It guards the whole hostname,
-which would put a login in front of your image links as well — see
-[After deploying](#after-deploying) for the way to add Access without breaking
-them.
+**Protect with Cloudflare Access** は OFF のままにしてください。これはホスト名全体を保護する
+ため、ONにすると画像の URL にもログインが要求されてしまいます。画像リンクを壊さずに Access を
+使う方法は[デプロイしたあとに](#デプロイしたあとに)を参照してください。
 
-![The setup screen with UPLOAD_TOKEN filled in and the deploy command set to npm run deploy](docs/imgs/setup-3-token.png)
+![UPLOAD_TOKEN が入力され、デプロイコマンドが npm run deploy になっているセットアップ画面](docs/imgs/setup-3-token.png)
 
-### 4. Wait for the build
+### 4. ビルドを待つ
 
-`npm run deploy` applies the database migrations and then deploys. A first build
-takes well under a minute.
+`npm run deploy` がデータベースのマイグレーションを適用してからデプロイします。初回ビルドでも
+1 分かかりません。
 
-![A successful Cloudflare build log](docs/imgs/setup-4-build.png)
+![成功した Cloudflare のビルドログ](docs/imgs/setup-4-build.png)
 
-### 5. Turn the Worker URL on
+### 5. Worker の URL を有効にする
 
-Cloudflare has been observed creating the Worker with its URL switched off, so a
-successful deploy can still leave you with nothing to open. This is what that
-looks like — the toggles on the right are off:
+Cloudflare が Worker の URL を無効な状態で作成することが確認されています。デプロイ自体は成功
+しているのに、開くべき URL がどこにもない、という状態になります。こうなっているときの画面が
+これです（右端のトグルが OFF になっています）。
 
-![The Domains tab with both Worker URLs disabled](docs/imgs/setup-5-url-off.png)
+![2 つの Worker URL がどちらも無効になっている Domains タブ](docs/imgs/setup-5-url-off.png)
 
-Switch the production Worker URL on, and the URL starts answering:
+production の Worker URL を ON にすると、URL が応答するようになります。
 
-![The Domains tab with the production Worker URL enabled](docs/imgs/setup-6-url-on.png)
+![production の Worker URL が有効になった Domains タブ](docs/imgs/setup-6-url-on.png)
 
-## First run
+## 初回の起動
 
-Open your `*.workers.dev` URL and paste the same token you set during setup. It
-is kept in that browser's `localStorage` and sent as a bearer token from then
-on; it never goes anywhere but your own instance.
+`*.workers.dev` の URL を開き、セットアップ時に設定したのと同じトークンを貼り付けます。トークンは
+そのブラウザの `localStorage` に保存され、以降は bearer トークンとして送られます。あなた自身の
+インスタンス以外には、どこにも送られません。
 
-![The gazoon unlock screen asking for the upload token](docs/imgs/app-1-unlock.png)
+![アップロードトークンの入力を求める gazoon のロック画面](docs/imgs/app-1-unlock.png)
 
-Then drop an image on the box, paste one from the clipboard, or click to pick a
-file. The URL is copied for you as soon as the upload finishes.
+あとは枠の上に画像をドロップするか、クリップボードからペーストするか、クリックしてファイルを
+選ぶだけです。アップロードが終わった時点で URL がコピーされています。
 
-![The gazoon web UI with an empty image list](docs/imgs/app-2-empty.png)
+![画像の一覧が空の状態の gazoon の画面](docs/imgs/app-2-empty.png)
 
-That URL works for anyone you send it to, with no login — which is the whole
-point. Try it in a private window.
+その URL は、送った相手なら誰でもログインなしで開けます。それがこのツールの目的です。
+シークレットウィンドウで試してみてください。
 
-## After deploying
+## デプロイしたあとに
 
-- **Custom domain.** Add a route to the Worker in the dashboard. This is not
-  configured automatically, because the deploy button cannot know which zone you
-  own.
-- **Cloudflare Access.** Put a Zero Trust policy on `/` and `/api/*` so the
-  admin UI needs your identity as well as the token. Scope it by path and leave
-  `/i/*` out, or your image links stop working for everyone else — which is why
-  the whole-hostname toggle in the deploy flow is the wrong tool here.
-- **Preview URLs.** The deploy flow also exposes `*-<worker>.workers.dev` for
-  non-production branches, bound to the same bucket and database. Turn it off
-  under **Domains** if you do not want a second public hostname serving your
-  images.
-- **Rotate the token.** `wrangler secret put UPLOAD_TOKEN`, then re-enter it in
-  the UI.
+- **独自ドメイン。** ダッシュボードで Worker にルートを追加します。デプロイボタンはあなたが
+  どのゾーンを持っているか知りようがないため、自動では設定されません。
+- **Cloudflare Access。** `/` と `/api/*` に Zero Trust のポリシーを設定すると、管理画面に
+  トークンだけでなく本人確認も要求できます。必ずパス単位でスコープを切り、`/i/*` は対象から
+  外してください。外さないと、他の人から画像リンクが見えなくなります。デプロイ画面にある
+  ホスト名全体のトグルがここでは使えないのは、これが理由です。
+- **プレビュー URL。** デプロイフローは production 以外のブランチ用に
+  `*-<worker>.workers.dev` も公開します。同じバケットとデータベースに繋がっているので、画像を
+  配信する公開ホスト名が 2 つある状態が気になる場合は **Domains** で無効にしてください。
+- **トークンのローテーション。** `wrangler secret put UPLOAD_TOKEN` を実行し、画面で入力し
+  直してください。
 
-## Security notes
+## セキュリティについて
 
-These are the properties the project is actually trying to hold, so they are
-worth stating plainly:
+このプロジェクトが実際に守ろうとしている性質なので、はっきり書いておきます。
 
-- **IDs are 128 bits of CSPRNG output**, URL-safe, 22 characters. Image URLs are
-  unguessable; that is what makes an unlisted URL safe to paste.
-- **Image URLs are public and permanent** until you delete them. Anyone with the
-  link can view the image — that is the point — but nothing enumerates them.
-- **Listing and deletion require the token.** Only you see the list.
-- **The declared content type is ignored.** Uploads are identified by their
-  magic bytes, and only PNG, JPEG, GIF, WebP and AVIF are stored. SVG is
-  rejected on purpose: it can carry scripts, and images are served from the same
-  origin as the UI that holds your token.
-- Responses on `/i/*` carry `X-Content-Type-Options: nosniff` and a
-  `default-src 'none'; sandbox` CSP.
-- The original filename is never used as a storage key, and EXIF is not yet
-  stripped — see below.
+- **ID は CSPRNG の 128 ビット出力**で、URL セーフな 22 文字です。画像の URL は推測できません。
+  だからこそ、限定共有の URL を安心して貼れます。
+- **画像の URL は公開かつ永続**で、削除するまで有効です。リンクを知っていれば誰でも見られます
+  — それが目的です — が、一覧できる手段はありません。
+- **一覧取得と削除にはトークンが必要**です。一覧を見られるのはあなただけです。
+- **クライアントが申告した Content-Type は無視します。** アップロードされたデータはマジック
+  バイトで判定し、PNG / JPEG / GIF / WebP / AVIF だけを保存します。SVG は意図的に拒否して
+  います。スクリプトを埋め込める形式であり、画像はトークンを保持している画面と同じオリジンから
+  配信されるためです。
+- `/i/*` のレスポンスには `X-Content-Type-Options: nosniff` と
+  `default-src 'none'; sandbox` の CSP を付けています。
+- 元のファイル名は保存キーに一切使いません。EXIF の除去は未実装です（下記参照）。
 
-## Not there yet
+## まだできていないこと
 
-v0.1 is deliberately small. Planned next:
+v0.1 は意図的に小さく作ってあります。次に予定しているものは以下です。
 
-- A desktop capture client: hotkey → select region → upload → URL on clipboard.
-- EXIF stripping on upload.
-- `private` / `unlisted` distinction and expiring URLs.
-- Browser extension.
+- デスクトップのキャプチャクライアント。ホットキー → 範囲選択 → アップロード → URL がクリップボードへ。
+- アップロード時の EXIF 除去。
+- `private` / `unlisted` の区別と、有効期限付き URL。
+- ブラウザ拡張。
 
-## Local development
+## ローカル開発
 
 ```sh
 npm install
-cp .dev.vars.example .dev.vars   # then fill in UPLOAD_TOKEN
+cp .dev.vars.example .dev.vars   # UPLOAD_TOKEN を埋める
 npm run db:migrations:apply:local
 npm run dev
 ```
 
-Upload from a shell:
+シェルからアップロードする場合:
 
 ```sh
 curl -X POST http://localhost:8787/api/upload \
@@ -169,14 +160,13 @@ curl -X POST http://localhost:8787/api/upload \
   --data-binary @screenshot.png
 ```
 
-## License
+## ライセンス
 
 MIT
 
 ## Buy me a coffee
 
-gazoon is free and always self-hosted, so there is nothing to sell you. If it
-saves you from paying someone else to hold your screenshots, a coffee is a nice
-way to say thanks.
+gazoon は無料で、常にセルフホストです。売るものが何もありません。スクリーンショットを誰かに
+預けてお金を払う必要がなくなったなら、コーヒー 1 杯がちょうどいいお礼になります。
 
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy_Me_a_Coffee-nkzn-FFDD00?style=for-the-badge&logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/nkzn)
