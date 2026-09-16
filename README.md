@@ -9,39 +9,117 @@ bucket it writes to.
 
 [![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/Nkzn/gazoon)
 
+![The gazoon web UI just after an upload, with the image URL already on the clipboard](docs/imgs/app-3-uploaded.png)
+
 ## What you get
 
 - Drop, paste, or pick an image in the browser → it uploads and the URL lands on
   your clipboard.
 - A list of everything you have uploaded, with one-click copy and delete.
-- Direct image URLs (`/i/<id>.png`) you can paste anywhere.
+- Direct image URLs (`/i/<id>.jpg`) you can paste anywhere.
 
-## Deploying
+## Why run your own
 
-Press the button above. Cloudflare forks this repository into your own GitHub or
-GitLab account, provisions the R2 bucket and D1 database, and deploys the
-Worker. If your Cloudflare account has never used R2, enable it in the dashboard
-first so the bucket can be created.
+Every hosted screenshot service asks you to trust an operator with a pile of
+images you stopped thinking about years ago. Sooner or later that trust gets
+tested.
 
-During setup you will be asked for one secret:
+gazoon does not ask. The Worker, the R2 bucket and the D1 database are created
+in your own Cloudflare account, and the only credential is a token you generate
+yourself. There is no central instance to breach and no operator account to
+compromise.
 
-| Secret | How to get it |
-| --- | --- |
-| `UPLOAD_TOKEN` | `openssl rand -hex 32` |
+It costs whatever Cloudflare charges you, which for personal use is usually
+nothing.
 
-That token is the only credential. Anyone holding it can upload to, list, and
-delete from your instance, so treat it like a password. Open your new
-`*.workers.dev` URL, paste the token once, and you are done — it is stored in
-that browser's `localStorage` and sent as a bearer token from then on.
+## Deploy it
 
-### Optional hardening
+Press the button above. Cloudflare copies this repository into your own GitHub
+or GitLab account, provisions the resources, and deploys the Worker. The whole
+thing takes about a minute.
 
-- **Cloudflare Access.** Put a Zero Trust policy on `/` and `/api/*` so the
-  admin UI needs your identity as well as the token. Leave `/i/*` out of the
-  policy, or your image links stop working for everyone else.
+If your Cloudflare account has never used R2, enable it in the dashboard first
+so the bucket can be created.
+
+### 1. Name the project
+
+Pick a Git account and a project name. The D1 database that holds image metadata
+is created for you — leave it on **Create new**.
+
+![The setup screen, with a Git account selected and a new D1 database named gazoon](docs/imgs/setup-1-project.png)
+
+### 2. Name the bucket
+
+Same again for the R2 bucket that will hold the image files themselves.
+
+![The R2 bucket section of the setup screen, set to create a new bucket named gazoon-images](docs/imgs/setup-2-bucket.png)
+
+### 3. Set the upload token
+
+Generate a token and paste it into `UPLOAD_TOKEN`:
+
+```sh
+openssl rand -hex 32
+```
+
+This is the only credential your instance has. Anyone holding it can upload to,
+list and delete from your instance, so treat it like a password.
+
+Leave **Protect with Cloudflare Access** off. It guards the whole hostname,
+which would put a login in front of your image links as well — see
+[After deploying](#after-deploying) for the way to add Access without breaking
+them.
+
+![The setup screen with UPLOAD_TOKEN filled in and the deploy command set to npm run deploy](docs/imgs/setup-3-token.png)
+
+### 4. Wait for the build
+
+`npm run deploy` applies the database migrations and then deploys. A first build
+takes well under a minute.
+
+![A successful Cloudflare build log](docs/imgs/setup-4-build.png)
+
+### 5. Turn the Worker URL on
+
+Cloudflare has been observed creating the Worker with its URL switched off, so a
+successful deploy can still leave you with nothing to open. This is what that
+looks like — the toggles on the right are off:
+
+![The Domains tab with both Worker URLs disabled](docs/imgs/setup-5-url-off.png)
+
+Switch the production Worker URL on, and the URL starts answering:
+
+![The Domains tab with the production Worker URL enabled](docs/imgs/setup-6-url-on.png)
+
+## First run
+
+Open your `*.workers.dev` URL and paste the same token you set during setup. It
+is kept in that browser's `localStorage` and sent as a bearer token from then
+on; it never goes anywhere but your own instance.
+
+![The gazoon unlock screen asking for the upload token](docs/imgs/app-1-unlock.png)
+
+Then drop an image on the box, paste one from the clipboard, or click to pick a
+file. The URL is copied for you as soon as the upload finishes.
+
+![The gazoon web UI with an empty image list](docs/imgs/app-2-empty.png)
+
+That URL works for anyone you send it to, with no login — which is the whole
+point. Try it in a private window.
+
+## After deploying
+
 - **Custom domain.** Add a route to the Worker in the dashboard. This is not
   configured automatically, because the deploy button cannot know which zone you
   own.
+- **Cloudflare Access.** Put a Zero Trust policy on `/` and `/api/*` so the
+  admin UI needs your identity as well as the token. Scope it by path and leave
+  `/i/*` out, or your image links stop working for everyone else — which is why
+  the whole-hostname toggle in the deploy flow is the wrong tool here.
+- **Preview URLs.** The deploy flow also exposes `*-<worker>.workers.dev` for
+  non-production branches, bound to the same bucket and database. Turn it off
+  under **Domains** if you do not want a second public hostname serving your
+  images.
 - **Rotate the token.** `wrangler secret put UPLOAD_TOKEN`, then re-enter it in
   the UI.
 

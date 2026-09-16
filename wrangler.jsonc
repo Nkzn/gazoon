@@ -6,6 +6,9 @@
 	"assets": {
 		"directory": "./public"
 	},
+	// Without this, a fresh deploy lands with no reachable hostname and the
+	// instance looks broken. Turn it off once you have a custom domain.
+	"workers_dev": true,
 	"observability": {
 		"enabled": true
 	},
